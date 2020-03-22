@@ -1,0 +1,3 @@
+[GOOD]
+# flask convention is to use `app` as a global
+good-names=app

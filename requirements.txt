@@ -1,1 +1,6 @@
+# main application
 Flask==1.1.1
+
+# formatting / linting
+black==19.10b0
+pylint==2.4.4
