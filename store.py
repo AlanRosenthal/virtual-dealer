@@ -1,25 +1,37 @@
 """
 Wrapper around datastore
 """
+import datetime
+from google.cloud import datastore
+
+datastore_client = datastore.Client()
 
 
 def create_new_game():
     """
     Create a new game
     """
-    return {"game_id": 1234}
+    entity = datastore.Entity(key=datastore_client.key("Game"))
+    entity.update(
+        {
+            "timestamp_created": datetime.datetime.now(),
+            "timestamp_updated": datetime.datetime.now(),
+            "state": "NOT_STARTED",
+        }
+    )
+    datastore_client.put(entity)
+
+    return {"game_id": entity.key.id}
 
 
 def get_game(game_id):
     """
     Get info about a game
     """
-    return {
-        "game_id": game_id,
-        "timestamp_created": 1,
-        "timestamp_updated": 2,
-        "state": "NOT_STARTED",
-    }
+    key = datastore_client.key("Game", game_id)
+    entity = datastore_client.get(key)
+
+    return entity
 
 
 def get_games(count):
