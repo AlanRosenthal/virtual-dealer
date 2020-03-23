@@ -32,7 +32,7 @@ def game_list(count=10):
     """
     List Games by recent
     """
-    response = store.get_games(count)
+    response = store.list_games(count)
     return jsonify(response), 200
 
 
@@ -43,6 +43,15 @@ def new_player(game_id):
     """
     response = store.add_new_player_to_game(game_id)
     return jsonify(response), 201
+
+
+@app.route("/api/game/<int:game_id>/player/list", methods=["GET"])
+def player_list(game_id):
+    """
+    List all players added to a specific game
+    """
+    response = store.list_players(game_id)
+    return jsonify(response), 200
 
 
 @app.route("/api/game/<int:game_id>/player/<int:player_id>", methods=["GET"])

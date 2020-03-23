@@ -34,7 +34,7 @@ def get_game(game_id):
     return entity
 
 
-def get_games(count):
+def list_games(count):
     """
     Get a list of the most recent games
     """
@@ -72,9 +72,25 @@ def add_new_player_to_game(game_id):
 
 def get_player(game_id, player_id):
     """
-    Get info about a game
+    Get info about a player in a game
     """
     game_key = datastore_client.key("Game", game_id)
     player_key = datastore_client.key("Player", player_id, parent=game_key)
     entity = datastore_client.get(player_key)
     return entity
+
+
+def list_players(game_id):
+    """
+    Get a list of players in a game
+    """
+    query = datastore_client.query(kind="Player")
+    query.ancestor = datastore_client.key("Game", game_id)
+    players = list(query.fetch())
+
+    # add game_id into dict
+    response = []
+    for player in players:
+        player["player_id"] = player.key.id
+        response.append(player)
+    return response
