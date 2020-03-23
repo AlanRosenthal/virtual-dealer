@@ -3,6 +3,7 @@ API routes for Virtual Dealer
 """
 
 from flask import Flask, jsonify
+import store
 
 app = Flask(__name__)
 
@@ -12,7 +13,7 @@ def new_game():
     """
     Create a new game
     """
-    response = {"game_id": 123, "message": "New game created!"}
+    response = store.create_new_game()
     return jsonify(response), 201
 
 
@@ -21,9 +22,7 @@ def game_info(game_id):
     """
     Get Game Info by game_id
     """
-    response = {
-        "game_id": game_id,
-    }
+    response = store.get_game(game_id)
     return jsonify(response), 200
 
 
@@ -33,9 +32,7 @@ def game_list(count=10):
     """
     List Games by recent
     """
-    del count
-    response = [{"game_id": 1,}, {"game_id": 2,}, {"game_id": 3,}, {"game_id": 4,}]
-
+    response = store.get_games(count)
     return jsonify(response), 200
 
 
@@ -44,11 +41,7 @@ def new_player(game_id):
     """
     Add a new player to a game
     """
-    response = {
-        "game_id": game_id,
-        "player_id": 456,
-        "message": "New player added to game!",
-    }
+    response = store.add_new_player_to_game(game_id)
     return jsonify(response), 201
 
 
@@ -57,10 +50,7 @@ def player_info(game_id, player_id):
     """
     Get player info by game_id and player_id
     """
-    response = {
-        "game_id": game_id,
-        "player_id": player_id,
-    }
+    response = store.get_player(game_id, player_id)
     return jsonify(response), 200
 
 
