@@ -38,16 +38,15 @@ def get_games(count):
     """
     Get a list of the most recent games
     """
+    query = datastore_client.query(kind="Game")
+    query.order = ["-timestamp_updated"]
+    games = list(query.fetch(limit=count))
+
+    # add game_id into dict
     response = []
-    for game_id in range(count):
-        response.append(
-            {
-                "game_id": 1000 + game_id,
-                "timestamp_created": 6,
-                "timestamp_updated": 43,
-                "state": "NOT_STARTED",
-            }
-        )
+    for game in games:
+        game["game_id"] = game.key.id
+        response.append(game)
     return response
 
 
@@ -55,18 +54,27 @@ def add_new_player_to_game(game_id):
     """
     Add a new player to a game
     """
-    return {"game_id": game_id, "player_id": 435}
+    game_key = datastore_client.key("Game", game_id)
+    player_key = datastore_client.key("Player", parent=game_key)
+    entity = datastore.Entity(key=player_key)
+    entity.update(
+        {
+            "name": "Alan",
+            "email": "alan.rosenthal@gmail.com",
+            "timestamp_created": datetime.datetime.now(),
+            "timestamp_updated": datetime.datetime.now(),
+        }
+    )
+    datastore_client.put(entity)
+
+    return {"game_id": game_id, "player_id": entity.key.id}
 
 
 def get_player(game_id, player_id):
     """
     Get info about a game
     """
-    return {
-        "game_id": game_id,
-        "player_id": player_id,
-        "name": "Alan",
-        "email": "alan.rosenthal@gmail.com",
-        "timestamp_created": 1,
-        "timestamp_updated": 2,
-    }
+    game_key = datastore_client.key("Game", game_id)
+    player_key = datastore_client.key("Player", player_id, parent=game_key)
+    entity = datastore_client.get(player_key)
+    return entity
