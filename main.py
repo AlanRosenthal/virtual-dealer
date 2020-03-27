@@ -2,7 +2,7 @@
 API routes for Virtual Dealer
 """
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import store
 
 app = Flask(__name__)
@@ -41,7 +41,14 @@ def new_player(game_id):
     """
     Add a new player to a game
     """
-    response = store.add_new_player_to_game(game_id)
+    if not request.is_json:
+        return 400
+
+    data = request.get_json()
+    if "email" not in data or "name" not in data:
+        return 400
+
+    response = store.add_new_player_to_game(game_id, data["name"], data["email"])
     return jsonify(response), 201
 
 

@@ -50,7 +50,7 @@ def list_games(count):
     return response
 
 
-def add_new_player_to_game(game_id):
+def add_new_player_to_game(game_id, name, email):
     """
     Add a new player to a game
     """
@@ -59,8 +59,8 @@ def add_new_player_to_game(game_id):
     entity = datastore.Entity(key=player_key)
     entity.update(
         {
-            "name": "Alan",
-            "email": "alan.rosenthal@gmail.com",
+            "name": name,
+            "email": email,
             "timestamp_created": datetime.datetime.now(),
             "timestamp_updated": datetime.datetime.now(),
         }
