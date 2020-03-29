@@ -3,9 +3,10 @@ API routes for Virtual Dealer
 """
 
 from flask import Flask, jsonify, request
-import store
+from store import Store
 
 app = Flask(__name__)
+store = Store()
 
 
 @app.route("/api/game/new", methods=["POST"])

@@ -1,4 +1,4 @@
 [GOOD]
 # flask convention is to use `app` as a global
-# datastore convention is to use `datastore_client` as a global
-good-names=app, datastore_client
+# store convention is to use `store` as a global
+good-names=app, store
