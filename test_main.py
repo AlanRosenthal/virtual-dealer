@@ -3,8 +3,8 @@ Tests for main.py
 """
 import json
 import unittest.mock as mock
-import main
 import pytest
+import main
 
 
 @pytest.fixture(name="client")

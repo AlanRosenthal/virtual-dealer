@@ -16,7 +16,7 @@ class Store:
         """
         self.ds_client = datastore.Client()
 
-    def create_new_game(self,):
+    def create_new_game(self):
         """
         Create a new game
         """
