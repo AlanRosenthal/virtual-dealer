@@ -15,6 +15,16 @@ def fixture_client():
     return main.app.test_client()
 
 
+@pytest.fixture(name="store")
+def fixture_store():
+    """
+    Mock for store::Store
+    """
+    # return_value = {"game_id": 5}
+    with mock.patch("store.Store", spec=True,) as my_mock:
+        yield my_mock
+
+
 def test_root(client):
     """
     Start with a blank database.
@@ -37,14 +47,13 @@ def test_new_game_post(client):
     """
     Test POST /api/game/new
     """
-    with mock.patch(
-        "store.Store.create_new_game",
-        mock.MagicMock(return_value={"game_id": 5}),
-        spec=True,
-    ) as mock_create_new_game:
+    with mock.patch("main.store", autospec=True) as mock_store:
+        mock_store.create_new_game.return_value = {"game_id": 5}
+
         response = client.post("/api/game/new")
         data = json.loads(response.data)
-        assert mock_create_new_game.assert_called_once
+
+        assert mock_store.create_new_game.assert_called_once
         assert response.status_code == 201
         assert "game_id" in data
         assert data["game_id"] == 5
