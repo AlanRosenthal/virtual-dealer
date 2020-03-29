@@ -3,6 +3,7 @@ Tests for main.py
 """
 import pytest
 import main
+import json
 
 
 @pytest.fixture(name="client")
@@ -20,7 +21,7 @@ def test_root(client):
 
     response = client.get("/")
     assert {"message": "Hello"}, response.data
-    assert 200, response.status_code
+    assert response.status_code == 200
 
 
 def test_new_game_get(client):
@@ -28,4 +29,13 @@ def test_new_game_get(client):
     Test GET /api/game/new
     """
     response = client.get("/api/game/new")
-    assert 400, response.status_code
+    assert response.status_code == 405
+
+
+def test_new_game_post(client):
+    """
+    Test POST /api/game/new
+    """
+    response = client.post("/api/game/new")
+    assert response.status_code == 201
+    assert "game_id" in json.loads(response.data)
