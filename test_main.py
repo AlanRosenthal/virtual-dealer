@@ -1,9 +1,10 @@
 """
 Tests for main.py
 """
-import pytest
-import main
 import json
+import unittest.mock as mock
+import main
+import pytest
 
 
 @pytest.fixture(name="client")
@@ -36,6 +37,14 @@ def test_new_game_post(client):
     """
     Test POST /api/game/new
     """
-    response = client.post("/api/game/new")
-    assert response.status_code == 201
-    assert "game_id" in json.loads(response.data)
+    with mock.patch(
+        "store.Store.create_new_game",
+        mock.MagicMock(return_value={"game_id": 5}),
+        spec=True,
+    ) as mock_create_new_game:
+        response = client.post("/api/game/new")
+        data = json.loads(response.data)
+        assert mock_create_new_game.assert_called_once
+        assert response.status_code == 201
+        assert "game_id" in data
+        assert data["game_id"] == 5
