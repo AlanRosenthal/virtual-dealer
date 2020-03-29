@@ -21,8 +21,8 @@ def fixture_store():
     Mock for store::Store
     """
     # return_value = {"game_id": 5}
-    with mock.patch("store.Store", spec=True,) as my_mock:
-        yield my_mock
+    with mock.patch("main.store", autospec=True) as mock_store:
+        yield mock_store
 
 
 def test_root(client):
@@ -43,17 +43,16 @@ def test_new_game_get(client):
     assert response.status_code == 405
 
 
-def test_new_game_post(client):
+def test_new_game_post(client, store):
     """
     Test POST /api/game/new
     """
-    with mock.patch("main.store", autospec=True) as mock_store:
-        mock_store.create_new_game.return_value = {"game_id": 5}
+    store.create_new_game.return_value = {"game_id": 5}
 
-        response = client.post("/api/game/new")
-        data = json.loads(response.data)
+    response = client.post("/api/game/new")
+    data = json.loads(response.data)
 
-        assert mock_store.create_new_game.assert_called_once
-        assert response.status_code == 201
-        assert "game_id" in data
-        assert data["game_id"] == 5
+    assert store.create_new_game.assert_called_once
+    assert response.status_code == 201
+    assert "game_id" in data
+    assert data["game_id"] == 5
