@@ -19,6 +19,15 @@ jobs:
           command: |
             export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
             pytest -s -v
+      - run:
+          name: Run Pylint
+          command: |
+            pylint **/*.py
+      - run:
+          name: Run Black
+          command: |
+            black --check **/*.py
+
 workflows:
   build_test:
     jobs:
