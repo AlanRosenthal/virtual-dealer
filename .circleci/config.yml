@@ -4,18 +4,30 @@ orbs:
   python: circleci/python@0.2.1
 
 jobs:
-  build-and-test:
-    executor: python/default
+  test:
+    docker:
+      - image: circleci/python:3.7.3
+
     steps:
       - checkout
-      - python/load-cache
-      - python/install-deps
-      - python/save-cache
       - run:
-          command: ./manage.py test
-          name: Test
+          name: GCloud Key
+          command: |
+            echo $GCLOUD_SERVICE_KEY | base64 --decode --ignore-garbage > ${HOME}/gcloud-service-key.json
+      - run:
+          name: Install python dependencies
+          command: |
+            virtualenv --python python3 .venv
+            source .venv/bin/activate
+            pip install -r requirements.txt
+      - run:
+          name: run tests
+          command: |
+            export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
+            source .venv/bin/activate
+            pytest -s -v
 
 workflows:
   main:
     jobs:
-      - build-and-test
+      - test
