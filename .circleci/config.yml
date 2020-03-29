@@ -22,11 +22,11 @@ jobs:
       - run:
           name: Run Pylint
           command: |
-            pylint **/*.py
+            pylint $(find -name "*.py")
       - run:
           name: Run Black
           command: |
-            black --check **/*.py
+            black --check $(find -name "*.py")
 
 workflows:
   build_test:
