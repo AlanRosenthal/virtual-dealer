@@ -20,7 +20,6 @@ def fixture_store():
     """
     Mock for store::Store
     """
-    # return_value = {"game_id": 5}
     with mock.patch("main.store", autospec=True) as mock_store:
         yield mock_store
 
@@ -35,15 +34,7 @@ def test_root(client):
     assert response.status_code == 200
 
 
-def test_new_game_get(client):
-    """
-    Test GET /api/game/new
-    """
-    response = client.get("/api/game/new")
-    assert response.status_code == 405
-
-
-def test_new_game_post(client, store):
+def test_post_api_game_new(client, store):
     """
     Test POST /api/game/new
     """
@@ -52,7 +43,83 @@ def test_new_game_post(client, store):
     response = client.post("/api/game/new")
     data = json.loads(response.data)
 
-    assert store.create_new_game.assert_called_once
+    store.create_new_game.assert_called_once_with()
     assert response.status_code == 201
-    assert "game_id" in data
     assert data["game_id"] == 5
+
+
+def test_get_api_game_gameid(client, store):
+    """
+    Test GET /api/game/<int:game_id>
+    """
+    store.get_game.return_value = None
+
+    response = client.get("/api/game/5")
+
+    store.get_game.assert_called_once_with(5)
+    assert response.status_code == 200
+
+
+def test_get_api_game_list(client, store):
+    """
+    Test GET /api/game/list
+    """
+
+    store.list_games.return_value = None
+
+    response = client.get("/api/game/list")
+
+    store.list_games.assert_called_once_with(10)
+    assert response.status_code == 200
+
+
+def test_get_api_game_list_count(client, store):
+    """
+    Test GET /api/game/list/<int:count>
+    """
+
+    store.list_games.return_value = None
+
+    response = client.get("/api/game/list/234")
+
+    store.list_games.assert_called_once_with(234)
+    assert response.status_code == 200
+
+
+def test_post_api_game_gameid_player_new(client, store):
+    """
+    Test POST /api/game/<int:game_id>/player/new
+    """
+
+    store.add_new_player_to_game.return_value = None
+
+    response = client.post(
+        "/api/game/3/player/new", json={"name": "Alan", "email": "fake@email.com"}
+    )
+
+    store.add_new_player_to_game.assert_called_once_with(3, "Alan", "fake@email.com")
+    assert response.status_code == 201
+
+
+def test_get_api_game_gameid_player_list(client, store):
+    """
+    Test GET /api/game/<int:game_id>/player/list
+    """
+    store.list_players.return_value = None
+
+    response = client.get("/api/game/43/player/list")
+
+    store.list_players.assert_called_once_with(43)
+    assert response.status_code == 200
+
+
+def test_get_api_game_gameid_player_playerid(client, store):
+    """
+    Test Get /api/game/<int:game_id>/player/<int:player_id>
+    """
+    store.get_player.return_value = None
+
+    response = client.get("api/game/43/player/312")
+
+    store.get_player.assert_called_once_with(43, 312)
+    assert response.status_code == 200
