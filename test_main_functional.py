@@ -1,3 +1,8 @@
+"""
+Functional test for main.py
+"""
+
+
 import pytest
 import main
 import json
@@ -12,6 +17,9 @@ def fixture_client():
 
 
 def print_game_deck_info(client, game_id):
+    """
+    Print game's deck info
+    """
     response = client.get(f"/api/game/{game_id}")
     data = json.loads(response.data)
     for deck, cards in data["decks"].items():
@@ -19,6 +27,9 @@ def print_game_deck_info(client, game_id):
 
 
 def print_player_deck_info(client, game_id, player_id):
+    """
+    Print player's deck info
+    """
     response = client.get(f"/api/game/{game_id}/player/{player_id}")
     data = json.loads(response.data)
     for deck, cards in data["decks"].items():
@@ -26,6 +37,9 @@ def print_player_deck_info(client, game_id, player_id):
 
 
 def test_create_game(client):
+    """
+    Test creating a game, adding players and decks
+    """
     print("Creating game!")
 
     response = client.post("/api/game/new")
