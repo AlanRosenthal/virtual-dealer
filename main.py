@@ -77,16 +77,18 @@ def new_deck_to_game(game_id):
     Add a new deck to the game
     """
     if not request.is_json:
-        return 400
+        error = {"error": "Request data must be json"}
+        return jsonify(error), 400
 
     data = request.get_json()
     if "name" not in data:
-        return 400
+        error = {"error": "Key 'name' expected in response data"}
+        return jsonify(error), 400
 
     response = store.add_new_deck_to_game(game_id, data["name"])
-    if response is None:
-        data = {"error": f"unable to add new deck: {data['name']}"}
-        return jsonify(data), 400
+    if not response:
+        error = {"error": f"unable to add new deck: {data['name']}"}
+        return jsonify(error), 400
     return jsonify(response), 201
 
 

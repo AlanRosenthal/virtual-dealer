@@ -115,7 +115,7 @@ def test_get_api_game_gameid_player_list(client, store):
 
 def test_get_api_game_gameid_player_playerid(client, store):
     """
-    Test Get /api/game/<int:game_id>/player/<int:player_id>
+    Test GET /api/game/<int:game_id>/player/<int:player_id>
     """
     store.get_player.return_value = None
 
@@ -123,3 +123,15 @@ def test_get_api_game_gameid_player_playerid(client, store):
 
     store.get_player.assert_called_once_with(43, 312)
     assert response.status_code == 200
+
+
+def test_get_api_game_gameid_deck_new(client, store):
+    """
+    Test POST "/api/game/<int:game_id>/deck/new"
+    """
+    store.add_new_deck_to_game.return_value = True
+
+    response = client.post("/api/game/3/deck/new", json={"name": "deck123"})
+
+    store.add_new_deck_to_game.assert_called_once_with(3, "deck123")
+    assert response.status_code == 201
