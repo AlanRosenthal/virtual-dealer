@@ -71,6 +71,25 @@ def player_info(game_id, player_id):
     return jsonify(response), 200
 
 
+@app.route("/api/game/<int:game_id>/deck/new", methods=["POST"])
+def new_deck_to_game(game_id):
+    """
+    Add a new deck to the game
+    """
+    if not request.is_json:
+        return 400
+
+    data = request.get_json()
+    if "name" not in data:
+        return 400
+
+    response = store.add_new_deck_to_game(game_id, data["name"])
+    if response is None:
+        data = {"error": f"unable to add new deck: {data['name']}"}
+        return jsonify(data), 400
+    return jsonify(response), 201
+
+
 @app.route("/")
 def root():
     """

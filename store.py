@@ -26,6 +26,7 @@ class Store:
                 "timestamp_created": datetime.datetime.now(),
                 "timestamp_updated": datetime.datetime.now(),
                 "state": "NOT_STARTED",
+                "decks": {"stock": [], "discard_pile": []},
             }
         )
         self.ds_client.put(entity)
@@ -69,6 +70,7 @@ class Store:
                 "email": email,
                 "timestamp_created": datetime.datetime.now(),
                 "timestamp_updated": datetime.datetime.now(),
+                "decks": {"hand": [], "discard_pile": []},
             }
         )
         self.ds_client.put(entity)
@@ -92,9 +94,26 @@ class Store:
         query.ancestor = self.ds_client.key("Game", game_id)
         players = list(query.fetch())
 
-        # add game_id into dict
+        # add player_id into dict
         response = []
         for player in players:
             player["player_id"] = player.key.id
             response.append(player)
         return response
+
+    def add_new_deck_to_game(self, game_id, deck_name):
+        """
+        Add a new deck to a game
+        """
+        with self.ds_client.transaction():
+            key = self.ds_client.key("Game", game_id)
+            game = self.ds_client.get(key)
+
+            if deck_name in game["decks"]:
+                return None
+
+            game["decks"].update({f"{deck_name}": []})
+
+            self.ds_client.put(game)
+
+        return game
