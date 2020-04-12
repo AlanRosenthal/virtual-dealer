@@ -1,19 +1,7 @@
 """
 Functional test for main.py
 """
-
-
-import pytest
-import main
 import json
-
-
-@pytest.fixture(name="client")
-def fixture_client():
-    """
-    Client test fixture for testing flask APIs
-    """
-    return main.app.test_client()
 
 
 def print_game_deck_info(client, game_id):

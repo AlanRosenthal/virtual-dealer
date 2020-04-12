@@ -4,15 +4,6 @@ Tests for main.py
 import json
 import unittest.mock as mock
 import pytest
-import main
-
-
-@pytest.fixture(name="client")
-def fixture_client():
-    """
-    Client test fixture for testing flask APIs
-    """
-    return main.app.test_client()
 
 
 @pytest.fixture(name="store")
