@@ -18,7 +18,7 @@ jobs:
           name: Run Pytest
           command: |
             export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
-            pytest --capture=no --verbose --html=test_reports/report.html --self-contained-html --junit-xml=test_reports/junit.xml tests
+            pytest --capture=no --verbose --html=test_reports/report.html --self-contained-html --junit-xml=test_reports/junit.xml --cov-report=html --cov=virtual_dealer tests
       - run:
           name: Run Pylint
           command: |
@@ -29,6 +29,8 @@ jobs:
             black --check $(find -name "*.py")
       - store_artifacts:
           path: test_reports
+      - store_artifacts:
+          path: htmlcov
 
 workflows:
   build_test:
