@@ -8,6 +8,7 @@ import virtual_dealer.store
 app = Flask("VirtualDealer")
 store = virtual_dealer.store.Store()
 
+
 @app.route("/api/game/new", methods=["POST"])
 def new_game():
     """

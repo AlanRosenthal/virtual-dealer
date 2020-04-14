@@ -2,17 +2,6 @@
 Tests for main.py
 """
 import json
-import unittest.mock as mock
-import pytest
-
-
-@pytest.fixture(name="store")
-def fixture_store():
-    """
-    Mock for store::Store
-    """
-    with mock.patch("main.store", autospec=True) as mock_store:
-        yield mock_store
 
 
 def test_root(client):

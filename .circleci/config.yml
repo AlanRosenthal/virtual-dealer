@@ -18,11 +18,11 @@ jobs:
           name: Run Pytest
           command: |
             export GOOGLE_APPLICATION_CREDENTIALS=${HOME}/gcloud-service-key.json
-            pytest --capture=no --verbose --html=test_reports/report.html --self-contained-html --junit-xml=test_reports/junit.xml
+            pytest --capture=no --verbose --html=test_reports/report.html --self-contained-html --junit-xml=test_reports/junit.xml tests
       - run:
           name: Run Pylint
           command: |
-            pylint $(find -name "*.py")
+            pylint virtual_dealer tests
       - run:
           name: Run Black
           command: |
