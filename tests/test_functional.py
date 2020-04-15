@@ -2,6 +2,7 @@
 Functional test for main.py
 """
 import json
+import pytest
 
 
 def print_game_deck_info(client, game_id):
@@ -24,6 +25,7 @@ def print_player_deck_info(client, game_id, player_id):
         print(f"game_id: {game_id}, player_id: {player_id}: Deck: {deck}: {len(cards)}")
 
 
+@pytest.mark.skip
 def test_create_game(client):
     """
     Test creating a game, adding players and decks
