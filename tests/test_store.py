@@ -31,3 +31,19 @@ def test_create_new_game(datastore, datastore_key, datastore_entity):
     datastore.Entity.assert_called_once_with(key=datastore_key)
     datastore.Entity().update.assert_called_once()
     datastore.Client().put.assert_called_once_with(datastore_entity)
+
+
+def test_get_game(datastore, datastore_key, datastore_entity):
+    """
+    Test store.get_game()
+    """
+    store = virtual_dealer.store.Store()
+    store.ds_client.key.return_value = datastore_key
+    store.ds_client.get.return_value = datastore_entity
+
+    game = store.get_game(123)
+
+    assert game == datastore_entity
+    datastore.Client.assert_called_once_with()
+    datastore.Client().key.assert_called_once_with("Game", 123)
+    datastore.Client().get.assert_called_once_with(datastore_key)
