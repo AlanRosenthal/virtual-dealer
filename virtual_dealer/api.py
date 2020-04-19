@@ -92,6 +92,50 @@ def new_deck_to_game(game_id):
     return jsonify(response), 201
 
 
+@app.route("/api/game/<int:game_id>/move_cards/to_all_players", methods=["POST"])
+def game_move_cards_game_to_all_players(game_id):
+    """
+    Move cards from a game's deck to every player's deck
+    """
+    if not request.is_json:
+        error = {"error": "Request data must be json"}
+        return jsonify(error), 400
+
+    data = request.get_json()
+    if "game_deck" not in data or "player_deck" not in data or "card_count" not in data:
+        error = {"error": "Invalid json"}
+        return jsonify(error), 400
+
+    store.move_cards_game_to_all_players(
+        game_id, data["game_deck"], data["player_deck"], data["card_count"]
+    )
+
+    return jsonify(message="todo"), 204
+
+
+@app.route("/api/game/<int:game_id>/player/<int:player_id>/move_card", methods=["POST"])
+def player_move_card(game_id, player_id):
+    """
+    Move cards between a player's deck
+    """
+    if not request.is_json:
+        error = {"error": "Request data must be json"}
+        return jsonify(error), 400
+
+    data = request.get_json()
+    expected_keys = ["source_deck", "destination_deck", "card"]
+    for key in expected_keys:
+        if key not in data:
+            error = {"error": f"Missing key: {key}"}
+            return jsonify(error), 400
+
+    store.move_card_player(
+        game_id, player_id, data["source_deck"], data["destination_deck"], data["card"]
+    )
+
+    return jsonify(message="todo"), 204
+
+
 @app.route("/")
 def root():
     """
