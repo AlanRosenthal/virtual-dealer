@@ -30,7 +30,7 @@ def print_player_deck_info(game_id, player_id):
         )
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_create_game():
     """
     Test creating a game, adding players and decks
