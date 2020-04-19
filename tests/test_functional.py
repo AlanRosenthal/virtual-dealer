@@ -1,6 +1,7 @@
 """
 Functional test for main.py
 """
+import pytest
 import requests
 
 SERVER_URL = "http://127.0.0.1:8080"
