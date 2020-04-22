@@ -31,9 +31,6 @@ class Store:
         )
 
         self.ds_client.put(game)
-        self.add_new_deck_to_game(
-            game.key.id, "stock", virtual_dealer.cards.create_full_deck()
-        )
 
         return {"game_id": game.key.id}
 
