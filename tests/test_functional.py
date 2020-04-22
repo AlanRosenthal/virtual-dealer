@@ -81,24 +81,26 @@ def test_create_game():
     assert response.status_code == 201
 
     response = requests.post(
-        f"{SERVER_URL}/api/game/{game_id}/player/{player1_id}/deck/new", json={"name": "hand"}
+        f"{SERVER_URL}/api/game/{game_id}/player/{player1_id}/deck/new",
+        json={"name": "hand"},
     )
     assert response.status_code == 201
 
     response = requests.post(
         f"{SERVER_URL}/api/game/{game_id}/player/{player1_id}/deck/new",
-        json={"name": "discard_pile"}
-    )
-    assert response.status_code == 201
-
-    response = requests.post(
-        f"{SERVER_URL}/api/game/{game_id}/player/{player2_id}/deck/new", json={"name": "hand"}
+        json={"name": "discard_pile"},
     )
     assert response.status_code == 201
 
     response = requests.post(
         f"{SERVER_URL}/api/game/{game_id}/player/{player2_id}/deck/new",
-        json={"name": "discard_pile"}
+        json={"name": "hand"},
+    )
+    assert response.status_code == 201
+
+    response = requests.post(
+        f"{SERVER_URL}/api/game/{game_id}/player/{player2_id}/deck/new",
+        json={"name": "discard_pile"},
     )
     assert response.status_code == 201
 
@@ -115,23 +117,10 @@ def test_create_game():
     response = requests.post(
         f"{SERVER_URL}/api/game/{game_id}/card/move",
         json={
-            "cards": [
-                {
-                    "rank": "A",
-                    "suit": "Club"
-                }, {
-                    "rank": "A",
-                    "suit": "Heart"
-                }
-            ],
-            "source": {
-                "deck_id": game_deck_stock_id
-            },
-            "destination": {
-                "player_id": player1_id,
-                "deck_id": player1_hand
-            }
-        }
+            "cards": [{"rank": "A", "suit": "Club"}, {"rank": "A", "suit": "Heart"}],
+            "source": {"deck_id": game_deck_stock_id},
+            "destination": {"player_id": player1_id, "deck_id": player1_hand},
+        },
     )
     assert response.status_code == 204
 

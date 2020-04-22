@@ -31,7 +31,9 @@ class Store:
         )
 
         self.ds_client.put(game)
-        self.add_new_deck_to_game(game.key.id, "stock", virtual_dealer.cards.create_full_deck())
+        self.add_new_deck_to_game(
+            game.key.id, "stock", virtual_dealer.cards.create_full_deck()
+        )
 
         return {"game_id": game.key.id}
 
@@ -155,7 +157,7 @@ class Store:
         )
         self.ds_client.put(deck)
 
-        return {"game_id": game_id, "player_id":player_id, "deck_id": deck.key.id}
+        return {"game_id": game_id, "player_id": player_id, "deck_id": deck.key.id}
 
     def list_player_decks(self, game_id, player_id):
         """
@@ -184,17 +186,25 @@ class Store:
             if "player_id" in src:
                 # unsure why, but if `parent=game_key` is added to `player_key`, get() returns None
                 player_key = self.ds_client.key("Player", src["player_id"])
-                src_deck_key = self.ds_client.key("Deck", src["deck_id"], parent=player_key)
+                src_deck_key = self.ds_client.key(
+                    "Deck", src["deck_id"], parent=player_key
+                )
             else:
-                src_deck_key = self.ds_client.key("Deck", src["deck_id"], parent=game_key)
+                src_deck_key = self.ds_client.key(
+                    "Deck", src["deck_id"], parent=game_key
+                )
             src_deck = self.ds_client.get(src_deck_key)
 
             if "player_id" in dest:
                 # unsure why, but if `parent=game_key` is added to `player_key`, get() returns None
                 player_key = self.ds_client.key("Player", dest["player_id"])
-                dest_deck_key = self.ds_client.key("Deck", dest["deck_id"], parent=player_key)
+                dest_deck_key = self.ds_client.key(
+                    "Deck", dest["deck_id"], parent=player_key
+                )
             else:
-                dest_deck_key = self.ds_client.key("Deck", dest["deck_id"], parent=game_key)
+                dest_deck_key = self.ds_client.key(
+                    "Deck", dest["deck_id"], parent=game_key
+                )
             dest_deck = self.ds_client.get(dest_deck_key)
 
             for card in cards:

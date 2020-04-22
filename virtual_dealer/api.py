@@ -3,8 +3,8 @@ APIs for webapp
 """
 
 from flask import Flask, jsonify, request
-import virtual_dealer.store
 from jsonschema import validate, SchemaError, ValidationError
+import virtual_dealer.store
 
 app = Flask("VirtualDealer")
 store = virtual_dealer.store.Store()
@@ -89,6 +89,7 @@ def game_deck_new(game_id):
     response = store.add_new_deck_to_game(game_id, data["name"])
     return jsonify(response), 201
 
+
 @app.route("/api/game/<int:game_id>/deck/list", methods=["GET"])
 def game_deck_list(game_id):
     """
@@ -96,6 +97,7 @@ def game_deck_list(game_id):
     """
     response = store.list_game_decks(game_id)
     return jsonify(response), 200
+
 
 @app.route("/api/game/<int:game_id>/player/<int:player_id>/deck/new", methods=["POST"])
 def player_deck_new(game_id, player_id):
@@ -114,6 +116,7 @@ def player_deck_new(game_id, player_id):
     response = store.add_new_deck_to_player(game_id, player_id, data["name"])
     return jsonify(response), 201
 
+
 @app.route("/api/game/<int:game_id>/player/<int:player_id>/deck/list", methods=["GET"])
 def player_deck_list(game_id, player_id):
     """
@@ -121,6 +124,7 @@ def player_deck_list(game_id, player_id):
     """
     response = store.list_player_decks(game_id, player_id)
     return jsonify(response), 200
+
 
 @app.route("/api/game/<int:game_id>/card/move", methods=["POST"])
 def deck_move(game_id):
@@ -134,23 +138,23 @@ def deck_move(game_id):
     data = request.get_json()
     schema = {
         "type": "object",
-        "properties" : {
+        "properties": {
             "cards": {
                 "type": "array",
                 "items": {
                     "type": "object",
                     "properties": {
                         "rank": {"type": "string"},
-                        "suit": {"type": "string"}
+                        "suit": {"type": "string"},
                     },
                     "required": ["rank", "suit"],
-                }
+                },
             },
             "source": {
                 "type": "object",
                 "properties": {
                     "player_id": {"type": "number"},
-                    "deck_id": {"type": "number"}
+                    "deck_id": {"type": "number"},
                 },
                 "required": ["deck_id"],
             },
@@ -158,7 +162,7 @@ def deck_move(game_id):
                 "type": "object",
                 "properties": {
                     "player_id": {"type": "number"},
-                    "deck_id": {"type": "number"}
+                    "deck_id": {"type": "number"},
                 },
                 "required": ["deck_id"],
             },
@@ -177,8 +181,8 @@ def deck_move(game_id):
     # try:
     store.cards_move(game_id, data["source"], data["destination"], data["cards"])
     # except Exception as exception:
-        # error = {"error": f"Error moving card: {exception}"}
-        # return jsonify(error), 400
+    # error = {"error": f"Error moving card: {exception}"}
+    # return jsonify(error), 400
     return "", 204
 
 
