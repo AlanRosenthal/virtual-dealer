@@ -7,28 +7,36 @@ import requests
 SERVER_URL = "http://127.0.0.1:8080"
 
 
-def print_game_deck_info(game_id):
+def get_game_decks(game_id):
     """
     Print game's deck info
     """
-    response = requests.get(f"{SERVER_URL}/api/game/{game_id}")
+    response = requests.get(
+        f"{SERVER_URL}/api/game/{game_id}/deck/list", json={"name": "stock"}
+    )
     assert response.status_code == 200
+
     data = response.json()
-    for deck, cards in data["decks"].items():
-        print(f"game_id: {game_id}: Deck: {deck}: {len(cards)}: {cards}")
+    for deck in data:
+        print(f"{deck['name']}: {deck['cards']}")
+
+    return data
 
 
-def print_player_deck_info(game_id, player_id):
+def get_player_decks(game_id, player_id):
     """
     Print player's deck info
     """
-    response = requests.get(f"{SERVER_URL}/api/game/{game_id}/player/{player_id}")
+    response = requests.get(
+        f"{SERVER_URL}/api/game/{game_id}/player/{player_id}/deck/list"
+    )
     assert response.status_code == 200
+
     data = response.json()
-    for deck, cards in data["decks"].items():
-        print(
-            f"game_id: {game_id}, player_id: {player_id}: Deck: {deck}: {len(cards)}: {cards}"
-        )
+    for deck in data:
+        print(f"{deck['name']}: {deck['cards']}")
+
+    return data
 
 
 @pytest.mark.skip
@@ -72,35 +80,59 @@ def test_create_game():
     )
     assert response.status_code == 201
 
-    print_game_deck_info(game_id)
-    print_player_deck_info(game_id, player1_id)
-    print_player_deck_info(game_id, player2_id)
-
     response = requests.post(
-        f"{SERVER_URL}/api/game/{game_id}/move_cards/to_all_players",
-        json={"game_deck": "stock", "player_deck": "hand", "card_count": 6},
+        f"{SERVER_URL}/api/game/{game_id}/player/{player1_id}/deck/new", json={"name": "hand"}
     )
-    assert response.status_code == 204
-
-    print_game_deck_info(game_id)
-    print_player_deck_info(game_id, player1_id)
-    print_player_deck_info(game_id, player2_id)
-
-    response = requests.get(f"{SERVER_URL}/api/game/{game_id}/player/{player1_id}")
-    assert response.status_code == 200
-    data = response.json()
-    player1_hand = data["decks"]["hand"]
+    assert response.status_code == 201
 
     response = requests.post(
-        f"{SERVER_URL}/api/game/{game_id}/player/{player1_id}/move_card",
+        f"{SERVER_URL}/api/game/{game_id}/player/{player1_id}/deck/new",
+        json={"name": "discard_pile"}
+    )
+    assert response.status_code == 201
+
+    response = requests.post(
+        f"{SERVER_URL}/api/game/{game_id}/player/{player2_id}/deck/new", json={"name": "hand"}
+    )
+    assert response.status_code == 201
+
+    response = requests.post(
+        f"{SERVER_URL}/api/game/{game_id}/player/{player2_id}/deck/new",
+        json={"name": "discard_pile"}
+    )
+    assert response.status_code == 201
+
+    game_decks = get_game_decks(game_id)
+    for deck in game_decks:
+        if deck["name"] == "stock":
+            game_deck_stock_id = deck["deck_id"]
+
+    player1_deck = get_player_decks(game_id, player1_id)
+    for deck in player1_deck:
+        if deck["name"] == "hand":
+            player1_hand = deck["deck_id"]
+
+    response = requests.post(
+        f"{SERVER_URL}/api/game/{game_id}/card/move",
         json={
-            "source_deck": "hand",
-            "destination_deck": "discard_pile",
-            "card": player1_hand[0],
-        },
+            "cards": [
+                {
+                    "rank": "A",
+                    "suit": "Club"
+                }, {
+                    "rank": "A",
+                    "suit": "Heart"
+                }
+            ],
+            "source": {
+                "deck_id": game_deck_stock_id
+            },
+            "destination": {
+                "player_id": player1_id,
+                "deck_id": player1_hand
+            }
+        }
     )
     assert response.status_code == 204
 
-    print_game_deck_info(game_id)
-    print_player_deck_info(game_id, player1_id)
-    print_player_deck_info(game_id, player2_id)
+    player1_deck = get_player_decks(game_id, player1_id)

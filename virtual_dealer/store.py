@@ -21,21 +21,19 @@ class Store:
         """
         Create a new game
         """
-        entity = datastore.Entity(key=self.ds_client.key("Game"))
-        entity.update(
+        game_key = self.ds_client.key("Game")
+        game = datastore.Entity(key=game_key)
+        game.update(
             {
                 "timestamp_created": datetime.datetime.now(),
                 "timestamp_updated": datetime.datetime.now(),
-                "state": "NOT_STARTED",
-                "decks": {
-                    "stock": virtual_dealer.cards.create_full_deck(),
-                    "discard_pile": [],
-                },
             }
         )
-        self.ds_client.put(entity)
 
-        return {"game_id": entity.key.id}
+        self.ds_client.put(game)
+        self.add_new_deck_to_game(game.key.id, "stock", virtual_dealer.cards.create_full_deck())
+
+        return {"game_id": game.key.id}
 
     def get_game(self, game_id):
         """
@@ -74,7 +72,6 @@ class Store:
                 "email": email,
                 "timestamp_created": datetime.datetime.now(),
                 "timestamp_updated": datetime.datetime.now(),
-                "decks": {"hand": [], "discard_pile": []},
             }
         )
         self.ds_client.put(entity)
@@ -105,92 +102,106 @@ class Store:
             response.append(player)
         return response
 
-    def add_new_deck_to_game(self, game_id, deck_name):
+    def add_new_deck_to_game(self, game_id, deck_name, cards=None):
         """
         Add a new deck to a game
         """
+        if not cards:
+            cards = []
+        game_key = self.ds_client.key("Game", game_id)
+        deck_key = self.ds_client.key("Deck", parent=game_key)
+        deck = datastore.Entity(key=deck_key)
+        deck.update(
+            {
+                "name": deck_name,
+                "cards": cards,
+                # "timestamp_created": datetime.datetime.now(),
+                # "timestamp_updated": datetime.datetime.now(),
+            }
+        )
+        self.ds_client.put(deck)
+
+        return {"game_id": game_id, "deck_id": deck.key.id}
+
+    def list_game_decks(self, game_id):
+        """
+        Get a list of game decks
+        """
+        query = self.ds_client.query(kind="Deck")
+        query.ancestor = self.ds_client.key("Game", game_id)
+        decks = list(query.fetch())
+
+        # add player_id into dict
+        response = []
+        for deck in decks:
+            deck["deck_id"] = deck.key.id
+            response.append(deck)
+        return response
+
+    def add_new_deck_to_player(self, game_id, player_id, deck_name):
+        """
+        Add a new deck to a player
+        """
+        player_key = self.ds_client.key("Player", player_id)
+        deck_key = self.ds_client.key("Deck", parent=player_key)
+        deck = datastore.Entity(key=deck_key)
+        deck.update(
+            {
+                "name": deck_name,
+                "cards": [],
+                # "timestamp_created": datetime.datetime.now(),
+                # "timestamp_updated": datetime.datetime.now(),
+            }
+        )
+        self.ds_client.put(deck)
+
+        return {"game_id": game_id, "player_id":player_id, "deck_id": deck.key.id}
+
+    def list_player_decks(self, game_id, player_id):
+        """
+        Get a list of game decks
+        """
+        game_key = self.ds_client.key("Game", game_id)
+        player_key = self.ds_client.key("Player", player_id, ancestor=game_key)
+        query = self.ds_client.query(kind="Deck")
+        query.ancestor = player_key
+        decks = list(query.fetch())
+
+        # add player_id into dict
+        response = []
+        for deck in decks:
+            deck["deck_id"] = deck.key.id
+            response.append(deck)
+        return response
+
+    def cards_move(self, game_id, src, dest, cards):
+        """
+        Move cards from src desk to dest decks
+        """
+        print(dest)
         with self.ds_client.transaction():
-            key = self.ds_client.key("Game", game_id)
-            game = self.ds_client.get(key)
-
-            if deck_name in game["decks"]:
-                return None
-
-            game["decks"].update({f"{deck_name}": []})
-
-            self.ds_client.put(game)
-
-        return game
-
-    # pylint: disable=too-many-arguments
-    # pylint: disable=bad-continuation
-    # black and pylint disagree with each on this, see https://github.com/PyCQA/pylint/issues/741
-    def move_cards_game_to_all_players(
-        self, game_id, game_deck_name, player_deck_name, card_count
-    ):
-        """
-        Deal cards to all players
-        """
-        with self.ds_client.transaction():
-            key = self.ds_client.key("Game", game_id)
-            game = self.ds_client.get(key)
-
-            query = self.ds_client.query(kind="Player")
-            query.ancestor = self.ds_client.key("Game", game_id)
-            players = list(query.fetch())
-
-            if game_deck_name not in game["decks"]:
-                raise Exception(f"Game deck not found: {game_deck_name}")
-
-            for player in players:
-                # copy game's deck so we don't run into issues when we modify it
-                game_deck = game["decks"][game_deck_name].copy()
-
-                if player_deck_name not in player["decks"]:
-                    raise Exception(
-                        f"Player {player.key.id} deck not found: {player_deck_name}"
-                    )
-
-                if len(game_deck) < card_count:
-                    raise Exception(
-                        f"Not enough cards in game's deck: {game_deck_name}"
-                    )
-
-                # move card_count cards from game_deck_name to player_deck_name
-                game["decks"][game_deck_name] = game_deck[card_count:]
-                player["decks"][player_deck_name].extend(game_deck[:card_count])
-
-                # save player entity
-                player["timestamp_updated"]: datetime.datetime.now()
-                self.ds_client.put(player)
-
-            # save game entity
-            game["timestamp_updated"]: datetime.datetime.now()
-            self.ds_client.put(game)
-
-    def move_card_player(self, game_id, player_id, source_deck, destination_deck, card):
-        """
-        Move cards between a player's desk
-        """
-        with self.ds_client.transaction():
-
             game_key = self.ds_client.key("Game", game_id)
-            player_key = self.ds_client.key("Player", player_id, parent=game_key)
-            player = self.ds_client.get(player_key)
+            if "player_id" in src:
+                # unsure why, but if `parent=game_key` is added to `player_key`, get() returns None
+                player_key = self.ds_client.key("Player", src["player_id"])
+                src_deck_key = self.ds_client.key("Deck", src["deck_id"], parent=player_key)
+            else:
+                src_deck_key = self.ds_client.key("Deck", src["deck_id"], parent=game_key)
+            src_deck = self.ds_client.get(src_deck_key)
 
-            if source_deck not in player["decks"]:
-                raise Exception(f"Player deck not found: {source_deck}")
+            if "player_id" in dest:
+                # unsure why, but if `parent=game_key` is added to `player_key`, get() returns None
+                player_key = self.ds_client.key("Player", dest["player_id"])
+                dest_deck_key = self.ds_client.key("Deck", dest["deck_id"], parent=player_key)
+            else:
+                dest_deck_key = self.ds_client.key("Deck", dest["deck_id"], parent=game_key)
+            dest_deck = self.ds_client.get(dest_deck_key)
 
-            if destination_deck not in player["decks"]:
-                raise Exception(f"Player deck not found: {destination_deck}")
+            for card in cards:
+                if card not in src_deck["cards"]:
+                    raise Exception(f"Card: {card} not in deck: {src_deck.key.id}")
+                src_deck["cards"].remove(card)
+                dest_deck["cards"].append(card)
 
-            # if not virtual_dealer.cards.is_card_in_deck(player["decks"][source_deck], card):
-            if card not in player["decks"][source_deck]:
-                cards = player["decks"][source_deck]
-                raise Exception(f"Card: {card} not in deck: {source_deck} {cards}")
-
-            player["decks"][source_deck].remove(card)
-            player["decks"][destination_deck].append(card)
-
-            player["timestamp_updated"]: datetime.datetime.now()
-            self.ds_client.put(player)
+            self.ds_client.put(src_deck)
+            self.ds_client.put(dest_deck)
