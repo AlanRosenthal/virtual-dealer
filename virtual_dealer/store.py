@@ -3,7 +3,6 @@ Wrapper around datastore
 """
 import datetime
 from google.cloud import datastore
-import virtual_dealer.cards
 
 
 class Store:
