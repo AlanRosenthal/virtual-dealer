@@ -3,7 +3,8 @@ Wrapper around datastore
 """
 import datetime
 from google.cloud import datastore
-
+import virtual_dealer.cards
+from virtual_dealer.exceptions import InvalidMove
 
 class Store:
     """
@@ -15,6 +16,7 @@ class Store:
         Initialize store class
         """
         self.ds_client = datastore.Client()
+
 
     def create_new_game(self):
         """
@@ -100,12 +102,14 @@ class Store:
             response.append(player)
         return response
 
-    def add_new_deck_to_game(self, game_id, deck_name, cards=None):
+    def add_new_deck_to_game(self, game_id, deck_name, is_full):
         """
         Add a new deck to a game
         """
-        if not cards:
-            cards = []
+        cards = []
+        if is_full:
+            cards = virtual_dealer.cards.create_full_deck()
+
         game_key = self.ds_client.key("Game", game_id)
         deck_key = self.ds_client.key("Deck", parent=game_key)
         deck = datastore.Entity(key=deck_key)
@@ -140,7 +144,8 @@ class Store:
         """
         Add a new deck to a player
         """
-        player_key = self.ds_client.key("Player", player_id)
+        game_key = self.ds_client.key("Game", game_id)
+        player_key = self.ds_client.key("Player", player_id, parent=game_key)
         deck_key = self.ds_client.key("Deck", parent=player_key)
         deck = datastore.Entity(key=deck_key)
         deck.update(
@@ -181,7 +186,9 @@ class Store:
             game_key = self.ds_client.key("Game", game_id)
             if "player_id" in src:
                 # unsure why, but if `parent=game_key` is added to `player_key`, get() returns None
-                player_key = self.ds_client.key("Player", src["player_id"])
+                player_key = self.ds_client.key(
+                    "Player", src["player_id"], parent=game_key
+                )
                 src_deck_key = self.ds_client.key(
                     "Deck", src["deck_id"], parent=player_key
                 )
@@ -193,7 +200,9 @@ class Store:
 
             if "player_id" in dest:
                 # unsure why, but if `parent=game_key` is added to `player_key`, get() returns None
-                player_key = self.ds_client.key("Player", dest["player_id"])
+                player_key = self.ds_client.key(
+                    "Player", dest["player_id"], parent=game_key
+                )
                 dest_deck_key = self.ds_client.key(
                     "Deck", dest["deck_id"], parent=player_key
                 )
@@ -205,7 +214,7 @@ class Store:
 
             for card in cards:
                 if card not in src_deck["cards"]:
-                    raise Exception(f"Card: {card} not in deck: {src_deck.key.id}")
+                    raise InvalidMove(f"Card: {card} not in deck: {src_deck.key.id}")
                 src_deck["cards"].remove(card)
                 dest_deck["cards"].append(card)
 

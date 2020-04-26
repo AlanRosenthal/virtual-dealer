@@ -113,5 +113,19 @@ def test_get_api_game_gameid_deck_new(client, store):
 
     response = client.post("/api/game/3/deck/new", json={"name": "deck123"})
 
-    store.add_new_deck_to_game.assert_called_once_with(3, "deck123")
+    store.add_new_deck_to_game.assert_called_once_with(3, "deck123", False)
+    assert response.status_code == 201
+
+
+def test_get_api_game_gameid_deck_new_full(client, store):
+    """
+    Test POST "/api/game/<int:game_id>/deck/new"
+    """
+    store.add_new_deck_to_game.return_value = True
+
+    response = client.post(
+        "/api/game/3/deck/new", json={"name": "deck123", "is_full": True}
+    )
+
+    store.add_new_deck_to_game.assert_called_once_with(3, "deck123", True)
     assert response.status_code == 201

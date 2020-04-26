@@ -5,6 +5,7 @@ APIs for webapp
 from flask import Flask, jsonify, request
 from jsonschema import validate, SchemaError, ValidationError
 import virtual_dealer.store
+from virtual_dealer.exceptions import InvalidMove
 
 app = Flask("VirtualDealer")
 store = virtual_dealer.store.Store()
@@ -82,11 +83,26 @@ def game_deck_new(game_id):
         return jsonify(error), 400
 
     data = request.get_json()
-    if "name" not in data:
-        error = {"error": "Key 'name' expected in response data"}
+
+    schema = {
+        "type": "object",
+        "properties": {"name": {"type": "string",}, "is_full": {"type": "boolean"}},
+        "required": ["name"],
+    }
+    try:
+        validate(instance=data, schema=schema)
+    except SchemaError as schema_error:
+        error = {"error": f"Schema error: {schema_error}"}
+        return jsonify(error), 500
+    except ValidationError as validation_error:
+        error = {"error": f"Schema validation failed: {validation_error}"}
         return jsonify(error), 400
 
-    response = store.add_new_deck_to_game(game_id, data["name"])
+    is_full = False
+    if "is_full" in data:
+        is_full = data["is_full"]
+
+    response = store.add_new_deck_to_game(game_id, data["name"], is_full)
     return jsonify(response), 201
 
 
@@ -178,11 +194,11 @@ def deck_move(game_id):
         error = {"error": f"Schema validation failed: {validation_error}"}
         return jsonify(error), 400
 
-    # try:
-    store.cards_move(game_id, data["source"], data["destination"], data["cards"])
-    # except Exception as exception:
-    # error = {"error": f"Error moving card: {exception}"}
-    # return jsonify(error), 400
+    try:
+        store.cards_move(game_id, data["source"], data["destination"], data["cards"])
+    except InvalidMove as invalid_move:
+        error = {"error": f"Error moving card: {invalid_move}"}
+        return jsonify(error), 400
     return "", 204
 
 
