@@ -6,6 +6,7 @@ from google.cloud import datastore
 import virtual_dealer.cards
 from virtual_dealer.exceptions import InvalidMove
 
+
 class Store:
     """
     Class wrappiong datastore
@@ -16,7 +17,6 @@ class Store:
         Initialize store class
         """
         self.ds_client = datastore.Client()
-
 
     def create_new_game(self):
         """
@@ -144,8 +144,8 @@ class Store:
         """
         Add a new deck to a player
         """
-        game_key = self.ds_client.key("Game", game_id)
-        player_key = self.ds_client.key("Player", player_id, parent=game_key)
+        # unsure why, but if `parent=game_key` is added to `player_key`, get() returns None
+        player_key = self.ds_client.key("Player", player_id)
         deck_key = self.ds_client.key("Deck", parent=player_key)
         deck = datastore.Entity(key=deck_key)
         deck.update(
@@ -170,7 +170,7 @@ class Store:
         query.ancestor = player_key
         decks = list(query.fetch())
 
-        # add player_id into dict
+        # add deck_id into dict
         response = []
         for deck in decks:
             deck["deck_id"] = deck.key.id
@@ -186,9 +186,7 @@ class Store:
             game_key = self.ds_client.key("Game", game_id)
             if "player_id" in src:
                 # unsure why, but if `parent=game_key` is added to `player_key`, get() returns None
-                player_key = self.ds_client.key(
-                    "Player", src["player_id"], parent=game_key
-                )
+                player_key = self.ds_client.key("Player", src["player_id"])
                 src_deck_key = self.ds_client.key(
                     "Deck", src["deck_id"], parent=player_key
                 )
@@ -200,9 +198,7 @@ class Store:
 
             if "player_id" in dest:
                 # unsure why, but if `parent=game_key` is added to `player_key`, get() returns None
-                player_key = self.ds_client.key(
-                    "Player", dest["player_id"], parent=game_key
-                )
+                player_key = self.ds_client.key("Player", dest["player_id"])
                 dest_deck_key = self.ds_client.key(
                     "Deck", dest["deck_id"], parent=player_key
                 )

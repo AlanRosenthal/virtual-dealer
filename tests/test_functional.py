@@ -15,10 +15,11 @@ def get_game_decks(game_id):
         f"{SERVER_URL}/api/game/{game_id}/deck/list", json={"name": "stock"}
     )
     assert response.status_code == 200
+    print(f"game: {game_id}")
 
     data = response.json()
     for deck in data:
-        print(f"{deck['name']}: {deck['cards']}")
+        print(f"    {deck['name']}: {deck['cards']}")
 
     return data
 
@@ -31,10 +32,10 @@ def get_player_decks(game_id, player_id):
         f"{SERVER_URL}/api/game/{game_id}/player/{player_id}/deck/list"
     )
     assert response.status_code == 200
-
+    print(f"game: {game_id} player: {player_id}")
     data = response.json()
     for deck in data:
-        print(f"{deck['name']}: {deck['cards']}")
+        print(f"    {deck['name']}: {deck['cards']}")
 
     return data
 
@@ -71,6 +72,12 @@ def test_create_game():
     print(f"Adding player 2: player_id: {player2_id}")
 
     response = requests.post(
+        f"{SERVER_URL}/api/game/{game_id}/deck/new",
+        json={"name": "stock", "is_full": True},
+    )
+    assert response.status_code == 201
+
+    response = requests.post(
         f"{SERVER_URL}/api/game/{game_id}/deck/new", json={"name": "crib"}
     )
     assert response.status_code == 201
@@ -104,15 +111,19 @@ def test_create_game():
     )
     assert response.status_code == 201
 
+    game_deck_stock_id = None
     game_decks = get_game_decks(game_id)
     for deck in game_decks:
         if deck["name"] == "stock":
             game_deck_stock_id = deck["deck_id"]
+    assert game_deck_stock_id is not None
 
+    player1_hand = None
     player1_deck = get_player_decks(game_id, player1_id)
     for deck in player1_deck:
         if deck["name"] == "hand":
             player1_hand = deck["deck_id"]
+    assert player1_hand is not None
 
     response = requests.post(
         f"{SERVER_URL}/api/game/{game_id}/card/move",
