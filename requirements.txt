@@ -1,5 +1,5 @@
 # main application
-Flask==1.1.1
+Flask==2.3.2
 google-cloud-datastore==1.10.0
 jsonschema==3.2.0
 
